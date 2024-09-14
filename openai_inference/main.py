@@ -1,4 +1,5 @@
 import asyncio
+import os
 from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any, TypeVar
 
@@ -8,10 +9,10 @@ from openai.types.chat import (
     ChatCompletionMessageParam,
     ChatCompletionUserMessageParam,
 )
+from tqdm import tqdm
 
 from openai_inference.modules.mylogger import init_logging
-from tqdm import tqdm
-import os
+
 T = TypeVar("T")
 
 
@@ -119,6 +120,7 @@ def batch_run_chatgpt(
         )
     )
 
+
 def run_chatgpt(
     messages_list: list[list[ChatCompletionMessageParam]],
     model_name: str,
@@ -148,7 +150,7 @@ def run_chatgpt(
                 stop=stop,
             )
         )
-    
+
     return results
 
 
