@@ -10,7 +10,8 @@ from openai.types.chat import (
 )
 
 from openai_inference.modules.mylogger import init_logging
-
+from tqdm import tqdm
+import os
 T = TypeVar("T")
 
 
@@ -127,12 +128,14 @@ def run_chatgpt(
     max_tokens: int | None = None,
     seed: int = 42,
     stop: str | list[str] | None = None,
-    log_path="openai_log/latest.log",
+    api_key: str = None,
 ) -> list[ChatCompletion]:
-    client = OpenAI()
+    if api_key is None:
+        api_key = os.getenv("OPENAI_API_KEY")
+    client = OpenAI(api_key=api_key)
 
     results = []
-    for ms in messages_list:
+    for ms in tqdm(messages_list):
         results.append(
             client.chat.completions.create(
                 model=model_name,
@@ -168,6 +171,7 @@ def main(
     seed=42,
     log_path="openai_log/latest.log",
     batch=True,
+    api_key: str = None,
 ) -> list[ChatCompletion]:
     logger = init_logging(__name__, log_path=log_path)
 
@@ -193,6 +197,6 @@ def main(
             temperature=temperature,
             max_tokens=max_tokens,
             seed=seed,
-            log_path=log_path,
+            api_key=api_key,
         )
     return answers
