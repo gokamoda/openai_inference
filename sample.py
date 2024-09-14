@@ -19,6 +19,6 @@ if __name__ == "__main__":
     ]
 
     results = openai_inference(
-        messages, model_name="gpt-3.5-turbo", log_path="latest.log"
+        messages, model_name="gpt-4o-mini", log_path="latest.log", max_tokens=1, batch=False
     )
     print(results)

@@ -2,7 +2,7 @@ import asyncio
 from collections.abc import Awaitable, Callable, Coroutine
 from typing import Any, TypeVar
 
-from openai import APIConnectionError, APIStatusError, AsyncOpenAI
+from openai import APIConnectionError, APIStatusError, AsyncOpenAI, OpenAI
 from openai.types.chat import (
     ChatCompletion,
     ChatCompletionMessageParam,
@@ -118,6 +118,36 @@ def batch_run_chatgpt(
         )
     )
 
+def run_chatgpt(
+    messages_list: list[list[ChatCompletionMessageParam]],
+    model_name: str,
+    logprobs: bool,
+    top_logprobs: int | None,
+    temperature: float = 0,
+    max_tokens: int | None = None,
+    seed: int = 42,
+    stop: str | list[str] | None = None,
+    log_path="openai_log/latest.log",
+) -> list[ChatCompletion]:
+    client = OpenAI()
+
+    results = []
+    for ms in messages_list:
+        results.append(
+            client.chat.completions.create(
+                model=model_name,
+                messages=ms,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                logprobs=logprobs,
+                top_logprobs=top_logprobs,
+                seed=seed,
+                stop=stop,
+            )
+        )
+    
+    return results
+
 
 def create_messsage(
     system_message: str, prompt: str
@@ -137,20 +167,32 @@ def main(
     max_tokens=1,
     seed=42,
     log_path="openai_log/latest.log",
+    batch=True,
 ) -> list[ChatCompletion]:
     logger = init_logging(__name__, log_path=log_path)
 
-    logger.info("Start batch call to OpenAI API")
-    answers = batch_run_chatgpt(
-        messages,
-        model_name=model_name,
-        logprobs=logprobs,
-        top_logprobs=top_logprobs,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        seed=seed,
-        log_path=log_path,
-    )
-    logger.info("Finished batch call to OpenAI API")
-
+    if batch:
+        logger.info("Start batch call to OpenAI API")
+        answers = batch_run_chatgpt(
+            messages,
+            model_name=model_name,
+            logprobs=logprobs,
+            top_logprobs=top_logprobs,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            seed=seed,
+            log_path=log_path,
+        )
+        logger.info("Finished batch call to OpenAI API")
+    else:
+        answers = run_chatgpt(
+            messages,
+            model_name=model_name,
+            logprobs=logprobs,
+            top_logprobs=top_logprobs,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            seed=seed,
+            log_path=log_path,
+        )
     return answers
